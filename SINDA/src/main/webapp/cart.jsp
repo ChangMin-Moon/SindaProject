@@ -11,7 +11,10 @@
 <script>
 	function refresh(){
 		setTimeout("location.reload()",100);
-	};
+	}
+	function check(){
+		cf.submit();
+	}
 </script>
 </head>
 <body onload="total()">
@@ -31,6 +34,7 @@
 			</table>
 		</div>
 		<div style="padding-top : 50px">
+		<form action="cart_select.jsp" method="post" name="cf">
 			<table class="table table-hover">	
 				<tr class="thead-light">
 					<th>선택</th>
@@ -43,31 +47,34 @@
 				</tr>
 				<%
 				request.setCharacterEncoding("UTF-8");
+				String id;
 				String p_id = request.getParameter("id");
 				String m_id = (String) session.getAttribute("userid");
 				ResultSet rs = null;
 				PreparedStatement pstmt = null;
 				int sum = 0;
 				
-				String sql = "select p.p_id, p.p_name, p.p_price, p.p_img, count(*) from member m join cart c on c.m_id = m.m_id join product p on c.p_id = p.p_id where c.m_id = ? group by c.p_id having count(*)>=1";
+				String sql = "select p.p_id, p.p_name, p.p_price, p.p_img, c.c_count, c.c_check from member m join cart c on c.m_id = m.m_id join product p on c.p_id = p.p_id where c.m_id = ? ";
 				pstmt = conn.prepareStatement(sql);
 				pstmt.setString(1, m_id);
 				rs = pstmt.executeQuery();
 				while(rs.next()){
 					%>
+					
  				<tr class="info">
- 					<td class="align-middle"><input type="checkbox" style="zoom:2.0;" id = "check"/></td>
+ 					<td class="align-middle"><input type="checkbox" style="zoom:2.0;" name = "c_check" value = "true" onclick='check()' <%if(rs.getBoolean("c_check")){%>checked<%}%>/></td>
  					<td class="align-middle"><img src="${pageContext.request.contextPath }/images/<%=rs.getString("p_img")%>" width = "70" height = "70"/></td>
 					<td class="align-middle"><%=rs.getString("p_name")%></td>
 					<td class="align-middle"><fmt:formatNumber value='<%=rs.getString("p_price")%>' pattern="#,###"/>원</td>
-					<td class="align-middle"><a onClick="refresh()" href='./cart_down.jsp?id=<%=rs.getString("p_id")%>' role="button"><img src='.\img\down.png' style="width: 25px; height : 25px"></a> &nbsp; <%=rs.getString("count(*)")%> &nbsp; <a onClick="refresh()" href='./cart_up.jsp?id=<%=rs.getString("p_id")%>' role="button"><img src='.\img\up.png' style="width: 25px; height : 25px"></a></td>
-					<td class="align-middle"><fmt:formatNumber value='<%=rs.getInt("p_price") * rs.getInt("count(*)")%>' pattern="#,###"/>원</td>
+					<td class="align-middle"><a onClick="refresh()" href='./cart_down.jsp?id=<%=rs.getString("p_id")%>&c_count=<%=rs.getInt("c_count")%>' role="button"><img src='.\img\down.png' style="width: 25px; height : 25px"></a> &nbsp; <%=rs.getInt("c_count")%> &nbsp; <a onClick="refresh()" href='./cart_up.jsp?id=<%=rs.getString("p_id")%>' role="button"><img src='.\img\up.png' style="width: 25px; height : 25px"></a></td>
+					<td class="align-middle"><fmt:formatNumber value='<%=rs.getInt("p_price") * rs.getInt("c_count")%>' pattern="#,###"/>원</td>
 					<%
-						 sum+=rs.getInt("p_price") * rs.getInt("count(*)");
+						 sum+=rs.getInt("p_price") * rs.getInt("c_count");
 					%>
 					<%-- <td><%=%></td> --%>
 					<td class="align-middle"><a href='./cart_delete.jsp?p_id=<%=rs.getString("p_id")%>' class="badge badge-danger">삭제</a></td>
 				</tr> 
+				
 				<%
 					}
 				%>
@@ -81,6 +88,7 @@
 					<th></th>
 				</tr>
 			</table>
+			</form>
 			<a href="./product_list.jsp" class="btn btn-secondary"> &laquo; 쇼핑 계속하기</a>
 			<a href="./order.jsp" class="btn btn-primary float-right" > 주문하기</a>
 		</div>

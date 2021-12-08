@@ -9,7 +9,7 @@
 	String m_id = (String) session.getAttribute("userid");
 	PreparedStatement pstmt = null;
 			
-			String sql = "insert into cart(m_id, p_id) values(?, ?)";
+			String sql = "update cart set c_count = c_count + 1 where m_id = ? and p_id = ?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, m_id);
 			pstmt.setString(2, p_id);
